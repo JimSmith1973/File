@@ -1,0 +1,23 @@
+// Resource.rc
+
+#include "Resource.h"
+
+IDR_CONTEXT_MENU MENU DISCARDABLE
+BEGIN
+	POPUP "Context"
+	BEGIN
+		MENUITEM "&About",														IDM_HELP_ABOUT
+	END
+END
+
+IDR_MAIN_MENU MENU
+	BEGIN
+	POPUP "&File"
+	BEGIN
+		MENUITEM "E&xit",														IDM_FILE_EXIT
+	END
+	POPUP "&Help"
+	BEGIN
+		MENUITEM "&About",														IDM_HELP_ABOUT
+	END
+END
