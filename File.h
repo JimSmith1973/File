@@ -6,6 +6,11 @@
 
 #include "Resource.h"
 
+#include "Ascii.h"
+#include "Common.h"
+
+#include "StatusBarWindow.h"
+
 #define MAIN_WINDOW_CLASS_NAME													"Main File Window Class"
 
 #define MAIN_WINDOW_CLASS_STYLE													0
@@ -26,11 +31,6 @@
 #define SYSTEM_MENU_SEPARATOR_ITEM_POSITION										5
 #define SYSTEM_MENU_ABOUT_ITEM_POSITION											6
 #define SYSTEM_MENU_ABOUT_ITEM_TEXT												"About"
-
-#define ABOUT_MESSAGE_CAPTION													"About"
-#define ERROR_MESSAGE_CAPTION													"Error"
-#define INFORMATION_MESSAGE_CAPTION												"Information"
-#define WARNING_MESSAGE_CAPTION													"Warning"
 
 #define ABOUT_MESSAGE_TEXT														"Simple File Manager\r\n"						\
 																				"\r\n"								\

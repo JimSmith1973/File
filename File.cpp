@@ -37,6 +37,19 @@ LRESULT CALLBACK MainWindowProcedure( HWND hWndMain, UINT uMessage, WPARAM wPara
 		case WM_CREATE:
 		{
 			// A create message
+			HINSTANCE hInstance;
+
+			// Get instance
+			hInstance = ( ( LPCREATESTRUCT )lParam )->hInstance;
+
+			// Create status bar window
+			if( StatusBarWindowCreate( hWndMain, hInstance ) )
+			{
+				// Successfully created status bar window
+
+				StatusBarWindowSetText( "Hello" );
+
+			} // End of successfully created status bar window
 
 			// Break out of switch
 			break;
@@ -51,6 +64,9 @@ LRESULT CALLBACK MainWindowProcedure( HWND hWndMain, UINT uMessage, WPARAM wPara
 			// Store client width and height
 			nClientWidth	= ( int )LOWORD( lParam );
 			nClientHeight	= ( int )HIWORD( lParam );
+
+			// Size status bar window
+			StatusBarWindowSize();
 
 			// Break out of switch
 			break;
