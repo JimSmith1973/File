@@ -5,6 +5,10 @@
 // Global variables
 static HWND g_hWndListView;
 
+BOOL IsListViewWindow( HWND hWndQuery )
+{
+	return( hWndQuery == g_hWndListView );
+}
 int ListViewWindowAddItem( LPCTSTR lpszItemText )
 {
 	int nResult = -1;
@@ -81,6 +85,126 @@ BOOL ListViewWindowGetRect( LPRECT lpRect )
 	return GetWindowRect( g_hWndListView, lpRect );
 
 } // End of function ListViewWindowGetRect
+
+BOOL ListViewWindowGetItemPath( int nWhichItem, int nWhichSubItem, LPTSTR lpszItemPath )
+{
+	BOOL bResult = FALSE;
+
+	// Get current folder into item path
+	if( GetCurrentDirectory( STRING_LENGTH, lpszItemPath ) )
+	{
+		// Successfully got current folder into item path
+		LVITEM lvItem;
+
+		// Allocate string memory
+		LPTSTR lpszItemText = new char[ STRING_LENGTH + sizeof( char ) ];
+
+		// Clear list view item structure
+		ZeroMemory( &lvItem, sizeof( lvItem ) );
+
+		// Initialise list view item structure
+		lvItem.mask			= LVIF_TEXT;
+		lvItem.iItem		= nWhichItem;
+		lvItem.iSubItem		= nWhichSubItem;
+		lvItem.pszText		= lpszItemText;
+		lvItem.cchTextMax	= STRING_LENGTH;
+
+		// Get item text
+		if( SendMessage( g_hWndListView, LVM_GETITEMTEXT, ( WPARAM )nWhichItem, ( LPARAM )&lvItem ) )
+		{
+			// Successfully got item text
+
+			// Ensure that item path ends with a back-slash
+			if( lpszItemPath[ lstrlen( lpszItemPath ) - sizeof( char ) ] != ASCII_BACK_SLASH_CHARACTER )
+			{
+				// Item path does not end with a back-slash
+
+				// Append a back-slash onto item path
+				lstrcat( lpszItemPath, ASCII_BACK_SLASH_STRING );
+
+			} // End of item path does not end with a back-slash
+
+			// See if item is a folder
+			if( lpszItemText[ 0 ] == LIST_VIEW_WINDOW_FOLDER_DISPLAY_TEXT_PREFIX )
+			{
+				// Item is a folder
+
+				// Update item path
+				lstrcat( lpszItemPath, ( lpszItemText + sizeof( LIST_VIEW_WINDOW_FOLDER_DISPLAY_TEXT_PREFIX ) ) );
+
+			} // End of item is a folder
+			else
+			{
+				// Item is a file
+
+				// Update item path
+				lstrcat( lpszItemPath, lpszItemText );
+
+			} // End of item is a file
+
+			// Update return value
+			bResult = TRUE;
+
+		} // End of successfully got item text
+
+		// Free string memory
+		delete [] lpszItemText;
+
+	} // End of successfully got current folder into item path
+
+	return bResult;
+
+} // End of function ListViewWindowGetItemPath
+
+BOOL ListViewWindowHandleNotifyMessage( WPARAM, LPARAM lParam, BOOL( *lpStatusFunction )( LPCTSTR lpszStatusMessage ))
+{
+	BOOL bResult = FALSE;
+
+	LPNMLISTVIEW lpNmListView;
+
+	// Get list view notify message handler
+	lpNmListView = ( LPNMLISTVIEW )lParam;
+
+	// Select notify message
+	switch( lpNmListView->hdr.code )
+	{
+		case LVN_ITEMCHANGED:
+		{
+			// A list view item changed notify message
+
+			// See if item has changed to selected
+			if( ( lpNmListView->uNewState ^ lpNmListView->uOldState ) & LVIS_SELECTED )
+			{
+				// Item has changed to selected
+
+				// Allocate string memory
+				LPTSTR lpszItemPath = new char[ STRING_LENGTH + sizeof( char ) ];
+
+				// Get item path
+				if( ListViewWindowGetItemPath( lpNmListView->iItem, lpNmListView->iSubItem, lpszItemPath ) )
+				{
+					// Successfully got item path
+
+					// Show item path
+					( *lpStatusFunction )( lpszItemPath );
+
+					// Update return value
+					bResult = TRUE;
+
+				} // End of successfully got item path
+
+			} // End of item has changed to selected
+
+			// Break out of switch
+			break;
+
+		} // End of a list view item changed notify message
+
+	}; // End of selection for notify message
+
+	return bResult;
+
+} // End of function ListViewWindowHandleNotifyMessage
 
 BOOL ListViewWindowMove( int nLeft, int nTop, int nWidth, int nHeight, BOOL bRepaint )
 {

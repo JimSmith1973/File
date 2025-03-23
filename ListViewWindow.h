@@ -12,7 +12,7 @@
 
 #define LIST_VIEW_WINDOW_EXTENDED_STYLE										LVS_EX_FULLROWSELECT
 #define LIST_VIEW_WINDOW_TITLE												NULL
-#define LIST_VIEW_WINDOW_STYLE												( WS_CHILD | WS_VISIBLE | LVS_REPORT )
+#define LIST_VIEW_WINDOW_STYLE												( WS_VISIBLE | WS_CHILD | WS_BORDER | LVS_REPORT )
 
 #define LIST_VIEW_WINDOW_COLUMN_TITLES										{ "Name", "Modified" }
 
@@ -37,11 +37,17 @@ typedef enum
 
 } LIST_VIEW_WINDOW_COLUMNS;
 
+BOOL IsListViewWindow( HWND hWndQuery );
+
 int ListViewWindowAddItem( LPCTSTR lpszItemText );
 
 BOOL ListViewWindowCreate( HWND hWndParent, HINSTANCE hInstance );
 
 BOOL ListViewWindowGetRect( LPRECT lpRect );
+
+BOOL ListViewWindowGetItemPath( int nWhichItem, int nWhichSubItem, LPTSTR lpszItemPath );
+
+BOOL ListViewWindowHandleNotifyMessage( WPARAM wParam, LPARAM lParam, BOOL( *lpStatusFunction )( LPCTSTR lpszStatusMessage ));
 
 BOOL ListViewWindowMove( int nLeft, int nTop, int nWidth, int nHeight, BOOL bRepaint = TRUE );
 
