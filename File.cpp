@@ -42,14 +42,19 @@ LRESULT CALLBACK MainWindowProcedure( HWND hWndMain, UINT uMessage, WPARAM wPara
 			// Get instance
 			hInstance = ( ( LPCREATESTRUCT )lParam )->hInstance;
 
-			// Create status bar window
-			if( StatusBarWindowCreate( hWndMain, hInstance ) )
+			// Create list view window
+			if( ListViewWindowCreate( hWndMain, hInstance ) )
 			{
-				// Successfully created status bar window
+				// Successfully created list view window
 
-				StatusBarWindowSetText( "Hello" );
+				// Create status bar window
+				if( StatusBarWindowCreate( hWndMain, hInstance ) )
+				{
+					// Successfully created status bar window
 
-			} // End of successfully created status bar window
+				} // End of successfully created status bar window
+
+			} // End of successfully created list view window
 
 			// Break out of switch
 			break;
@@ -60,6 +65,9 @@ LRESULT CALLBACK MainWindowProcedure( HWND hWndMain, UINT uMessage, WPARAM wPara
 			// A size message
 			int nClientWidth;
 			int nClientHeight;
+			int nListViewWindowHeight;
+			int nStatusBarWindowHeight;
+			RECT rcStatusBar;
 
 			// Store client width and height
 			nClientWidth	= ( int )LOWORD( lParam );
@@ -68,6 +76,16 @@ LRESULT CALLBACK MainWindowProcedure( HWND hWndMain, UINT uMessage, WPARAM wPara
 			// Size status bar window
 			StatusBarWindowSize();
 
+			// Get status bar window size
+			StatusBarWindowGetRect( &rcStatusBar );
+
+			// Calculate window sizes
+			nStatusBarWindowHeight	= ( rcStatusBar.bottom - rcStatusBar.top );
+			nListViewWindowHeight	= ( nClientHeight - nStatusBarWindowHeight );
+
+			// Move list view window
+			ListViewWindowMove( 0, 0, nClientWidth, nListViewWindowHeight, TRUE );
+
 			// Break out of switch
 			break;
 
@@ -75,6 +93,9 @@ LRESULT CALLBACK MainWindowProcedure( HWND hWndMain, UINT uMessage, WPARAM wPara
 		case WM_ACTIVATE:
 		{
 			// An activate message
+
+			// Focus on list view window
+			ListViewWindowSetFocus();
 
 			// Break out of switch
 			break;
@@ -306,6 +327,12 @@ int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow )
 
 			// Update main window
 			UpdateWindow( hWndMain );
+
+			// Add items to list view window
+			ListViewWindowAddItem( "1234567890" );
+			ListViewWindowAddItem( "qwertyuiop" );
+			ListViewWindowAddItem( "asdfghjkl" );
+			ListViewWindowAddItem( "zxcvbnm" );
 
 			// Main message loop
 			while( GetMessage( &msg, NULL, 0, 0 ) > 0 )
