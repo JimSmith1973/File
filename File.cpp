@@ -328,11 +328,8 @@ int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow )
 			// Update main window
 			UpdateWindow( hWndMain );
 
-			// Add items to list view window
-			ListViewWindowAddItem( "1234567890" );
-			ListViewWindowAddItem( "qwertyuiop" );
-			ListViewWindowAddItem( "asdfghjkl" );
-			ListViewWindowAddItem( "zxcvbnm" );
+			// Populate list view window
+			ListViewWindowPopulate( ALL_FILES_FILTER, &StatusBarWindowSetText );
 
 			// Main message loop
 			while( GetMessage( &msg, NULL, 0, 0 ) > 0 )
