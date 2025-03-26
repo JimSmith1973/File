@@ -298,7 +298,7 @@ BOOL ListViewWindowHandleNotifyMessage( WPARAM, LPARAM lParam, BOOL( *lpStatusFu
 			break;
 
 		} // End of a column click notify message
-/*		case LVN_ITEMCHANGED:
+		case LVN_ITEMCHANGED:
 		{
 			// A list view item changed notify message
 
@@ -332,7 +332,7 @@ BOOL ListViewWindowHandleNotifyMessage( WPARAM, LPARAM lParam, BOOL( *lpStatusFu
 			break;
 
 		} // End of a list view item changed notify message
-*/
+
 	}; // End of selection for notify message
 
 	return bResult;
@@ -412,6 +412,7 @@ int ListViewWindowPopulate( LPCTSTR lpszFolderPath, LPCTSTR lpszFileFilter, BOOL
 		// Successfully found first item
 		LVITEM lvItem;
 		SYSTEMTIME stModified;
+		SHFILEINFO shfi;
 
 		// Allocate string memory
 		LPTSTR lpszDisplayText	= new char[ STRING_LENGTH + sizeof( char ) ];
@@ -421,7 +422,7 @@ int ListViewWindowPopulate( LPCTSTR lpszFolderPath, LPCTSTR lpszFileFilter, BOOL
 		ZeroMemory( &lvItem, sizeof( lvItem ) );
 
 		// Initialise list view item structure
-		lvItem.mask			= LVIF_TEXT;
+		lvItem.mask			= ( LVIF_TEXT | LVIF_IMAGE );
 		lvItem.cchTextMax	= STRING_LENGTH;
 		lvItem.iItem		= 0;
 
@@ -450,6 +451,9 @@ int ListViewWindowPopulate( LPCTSTR lpszFolderPath, LPCTSTR lpszFileFilter, BOOL
 				{
 					// Found item is not dots
 
+					// Get information for folder
+					SHGetFileInfo( wfd.cFileName, 0, &shfi, sizeof( SHFILEINFO ), ( SHGFI_SYSICONINDEX | SHGFI_SMALLICON ) );
+
 					// Format display item text
 					wsprintf( lpszDisplayText, LIST_VIEW_WINDOW_FOLDER_DISPLAY_TEXT_FORMAT_STRING, LIST_VIEW_WINDOW_FOLDER_DISPLAY_TEXT_PREFIX, wfd.cFileName );
 
@@ -459,6 +463,9 @@ int ListViewWindowPopulate( LPCTSTR lpszFolderPath, LPCTSTR lpszFileFilter, BOOL
 			else
 			{
 				// Found item is a file
+
+				// Get information for file
+				SHGetFileInfo( wfd.cFileName, 0, &shfi, sizeof( SHFILEINFO ), ( SHGFI_SYSICONINDEX | SHGFI_SMALLICON ) );
 
 				// Use item name as display item text
 				lstrcpy( lpszDisplayText, wfd.cFileName );
@@ -473,6 +480,7 @@ int ListViewWindowPopulate( LPCTSTR lpszFolderPath, LPCTSTR lpszFileFilter, BOOL
 				// Update list view item structure for file name
 				lvItem.iSubItem		= LIST_VIEW_WINDOW_NAME_COLUMN_ID;
 				lvItem.pszText		= lpszDisplayText;
+				lvItem.iImage 		= shfi.iIcon;
 
 				// Add item to list view window
 				lvItem.iItem = SendMessage( g_hWndListView, LVM_INSERTITEM, ( WPARAM )lvItem.iItem, ( LPARAM )&lvItem );
@@ -571,3 +579,9 @@ HWND ListViewWindowSetFocus()
 	return SetFocus( g_hWndListView );
 
 } // End of function ListViewWindowSetFocus
+
+HIMAGELIST ListViewWindowSetImageList( HIMAGELIST hImageList, int nWhichImageList )
+{
+	return ( HIMAGELIST )::SendMessage( g_hWndListView, LVM_SETIMAGELIST, ( WPARAM )nWhichImageList, ( LPARAM )hImageList );
+
+} // End of function ListViewWindowSetImageList

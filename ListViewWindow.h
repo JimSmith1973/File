@@ -60,3 +60,5 @@ int ListViewWindowPopulate( LPCTSTR lpszFolderPath, LPCTSTR lpszFileFilter, BOOL
 int ListViewWindowSetAllColumnWidths( int nColumnWidth = LVSCW_AUTOSIZE_USEHEADER );
 
 HWND ListViewWindowSetFocus();
+
+HIMAGELIST ListViewWindowSetImageList( HIMAGELIST hImageList, int nWhichImageList = LVSIL_SMALL );

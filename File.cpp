@@ -46,6 +46,14 @@ LRESULT CALLBACK MainWindowProcedure( HWND hWndMain, UINT uMessage, WPARAM wPara
 			if( ListViewWindowCreate( hWndMain, hInstance ) )
 			{
 				// Successfully created list view window
+				SHFILEINFO shfi;
+				HIMAGELIST hImageList;
+
+				// Get system image list
+				hImageList = ( HIMAGELIST )SHGetFileInfo( NULL, 0, &shfi, sizeof( SHFILEINFO ), ( SHGFI_SYSICONINDEX | SHGFI_SMALLICON ) );
+
+				// Assign system image list to list view window
+				ListViewWindowSetImageList( hImageList );
 
 				// Create status bar window
 				if( StatusBarWindowCreate( hWndMain, hInstance ) )
