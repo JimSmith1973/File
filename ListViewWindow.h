@@ -41,6 +41,8 @@ BOOL IsListViewWindow( HWND hWndQuery );
 
 int ListViewWindowAddItem( LPCTSTR lpszItemText );
 
+int CALLBACK ListViewWindowCompare( LPARAM lParam1, LPARAM lParam2, LPARAM lParamColumn );
+
 BOOL ListViewWindowCreate( HWND hWndParent, HINSTANCE hInstance );
 
 BOOL ListViewWindowGetRect( LPRECT lpRect );

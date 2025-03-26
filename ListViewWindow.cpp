@@ -32,6 +32,67 @@ int ListViewWindowAddItem( LPCTSTR lpszItemText )
 
 } // End of function ListViewWindowAddItem
 
+int CALLBACK ListViewWindowCompare( LPARAM lParam1, LPARAM lParam2, LPARAM lParamColumn )
+{
+	int nResult = 0;
+
+	LVITEM lvItem;
+
+	// Allocate string memory
+	LPTSTR lpszItem1 = new char[ STRING_LENGTH ];
+	LPTSTR lpszItem2 = new char[ STRING_LENGTH ];
+
+	// Clear list view item structure
+	ZeroMemory( &lvItem, sizeof( lvItem ) );
+
+	// Initialise list view item structure
+	lvItem.mask			= LVIF_TEXT;
+	lvItem.iSubItem		= lParamColumn;
+	lvItem.cchTextMax	= STRING_LENGTH;
+
+	// Update list view item structure for first item
+	lvItem.iItem	= lParam1;
+	lvItem.pszText	= lpszItem1;
+
+	// Get first item text
+	if( SendMessage( g_hWndListView, LVM_GETITEMTEXT, ( WPARAM )lParam1, ( LPARAM )&lvItem ) )
+	{
+		// Successfully got first item text
+
+		// Update list view item structure for second item
+		lvItem.iItem	= lParam2;
+		lvItem.pszText	= lpszItem2;
+
+		// Get second item text
+		if( SendMessage( g_hWndListView, LVM_GETITEMTEXT, ( WPARAM )lParam2, ( LPARAM )&lvItem ) )
+		{
+			// Successfully got second item text
+
+			// Compare item texts
+			nResult = lstrcmp( lpszItem1, lpszItem2 );
+
+		} // End of successfully got second item text
+
+	} // End of successfully got first item text
+
+	// See if the modified column is being sorted
+	if( lParamColumn == LIST_VIEW_WINDOW_MODIFIED_COLUMN_ID )
+	{
+		// The modified column is being sorted
+
+		// Invert result (so that most recent itema appear at the top)
+		nResult = ( 0 - nResult );
+
+	} // End of the modified column is being sorted
+
+	// Free string memory
+	delete [] lpszItem1;
+	delete [] lpszItem2;
+
+	return nResult;
+
+} // End of function ListViewWindowCompare
+
 BOOL ListViewWindowCreate( HWND hWndParent, HINSTANCE hInstance )
 {
 	BOOL bResult = FALSE;
@@ -168,7 +229,76 @@ BOOL ListViewWindowHandleNotifyMessage( WPARAM, LPARAM lParam, BOOL( *lpStatusFu
 	// Select notify message
 	switch( lpNmListView->hdr.code )
 	{
-		case LVN_ITEMCHANGED:
+		case NM_DBLCLK:
+		{
+			// A double click notify message
+
+			// Allocate string memory
+			LPTSTR lpszItemPath = new char[ STRING_LENGTH + sizeof( char ) ];
+
+			// Get item path
+			if( ListViewWindowGetItemPath( lpNmListView->iItem, lpNmListView->iSubItem, lpszItemPath ) )
+			{
+				// Successfully got item path
+
+				// See if item is a folder
+				if( GetFileAttributes( lpszItemPath ) & FILE_ATTRIBUTE_DIRECTORY )
+				{
+					// Item is a folder
+
+					// Populate to folder
+					ListViewWindowPopulate( lpszItemPath, ALL_FILES_FILTER, lpStatusFunction );
+
+				} // End of item is a folder
+				else
+				{
+					// Item is a file
+
+					// Open file
+					if( ( static_cast<int>( reinterpret_cast<uintptr_t>( ShellExecute( NULL, SHELL_EXECUTE_OPEN_COMMAND, lpszItemPath, NULL, NULL, SW_SHOWNORMAL ) ) ) ) <= 32 )
+					{
+						// Unable to open file
+
+						// Allocate string memory
+						LPTSTR lpszErrorMessage = new char[ STRING_LENGTH ];
+
+						// Format error message
+						wsprintf( lpszErrorMessage, UNABLE_TO_OPEN_FILE_ERROR_MESSAGE_FORMAT_STRING, lpszItemPath );
+
+						// Display error message
+						MessageBox( 0, lpszErrorMessage, ERROR_MESSAGE_CAPTION, ( MB_OK | MB_ICONERROR ) );
+
+						// Free string memory
+						delete [] lpszErrorMessage;
+
+					} // End of unable to open file
+
+				} // End of item is a file
+
+				// Update return value
+				bResult = TRUE;
+
+			} // End of successfully got item path
+
+			// Free string memory
+			delete [] lpszItemPath;
+
+			// Break out of switch
+			break;
+
+		} // End of a double click notify message
+		case LVN_COLUMNCLICK:
+		{
+			// A column click notify message
+
+			// Sort the list view
+			::SendMessage( g_hWndListView, LVM_SORTITEMSEX, ( WPARAM )( lpNmListView->iSubItem ), ( LPARAM )&ListViewWindowCompare );
+
+			// Break out of switch
+			break;
+
+		} // End of a column click notify message
+/*		case LVN_ITEMCHANGED:
 		{
 			// A list view item changed notify message
 
@@ -193,13 +323,16 @@ BOOL ListViewWindowHandleNotifyMessage( WPARAM, LPARAM lParam, BOOL( *lpStatusFu
 
 				} // End of successfully got item path
 
+				// Free string memory
+				delete [] lpszItemPath;
+
 			} // End of item has changed to selected
 
 			// Break out of switch
 			break;
 
 		} // End of a list view item changed notify message
-
+*/
 	}; // End of selection for notify message
 
 	return bResult;
@@ -291,6 +424,9 @@ int ListViewWindowPopulate( LPCTSTR lpszFolderPath, LPCTSTR lpszFileFilter, BOOL
 		lvItem.mask			= LVIF_TEXT;
 		lvItem.cchTextMax	= STRING_LENGTH;
 		lvItem.iItem		= 0;
+
+		// Set current folder
+		SetCurrentDirectory( lpszFolderPath );
 
 		// Delete all items from list view window
 		SendMessage( g_hWndListView, LVM_DELETEALLITEMS, ( WPARAM )NULL, ( LPARAM )NULL );
